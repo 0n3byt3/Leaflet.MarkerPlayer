@@ -1,0 +1,68 @@
+:root, body, head {
+	height: 100%;
+}
+body {
+	margin: 0;
+	position: relative;
+	line-height: 1;
+}
+#map {
+	height: 100%;
+	width: 100%;
+	z-index: 1;
+}
+
+#cntrl-wrap {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	width: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: .5rem 0;
+	z-index: 2;
+}
+
+#cntrl-wrap .cntrl {
+	width: 25rem;
+	display: flex;
+	flex-direction: row;
+	justify-content: start;
+	align-items: center;
+	padding: .5rem;
+	background-color: #fff;
+	border-radius: .5rem;
+	border: 2px solid #b7b7b7b3;
+	overflow: auto;
+}
+
+#cntrl-wrap .cntrl .btn {
+	color: #1f77a2;
+	cursor: pointer;
+	border-radius: 5px;
+	padding: .25rem .25rem;
+	background-color: #5d71db2e;
+}
+
+#cntrl-wrap .cntrl .prog-bar-wrap {
+	display: flex;
+	height: 5px;
+	width: 100%;
+	padding: 0 .5rem;
+	overflow: auto;
+}
+#prog-bar {
+	background-color: #5197e8;
+	width: 0%;
+	border-radius: 5px;
+}
+
+#cntrl-wrap .cntrl .point-info {
+	color: #4d4d4d;
+	white-space: nowrap;
+	background-color: #4d7f9726;
+	padding: .25rem;
+	border-radius: .5rem;
+}

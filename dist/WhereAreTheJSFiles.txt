@@ -1,0 +1,2 @@
+We don't ship the .js files in the git master branch.
+They are only present in version tags and in npm.
