@@ -1,25 +1,6 @@
-// (function (factory, window) {
-//
-//     // define an AMD module that relies on 'leaflet'
-//     if (typeof define === 'function' && define.amd) {
-//         define(['leaflet'], factory);
-//
-//     // define a Common JS module that relies on 'leaflet'
-//     } else if (typeof exports === 'object') {
-//         module.exports = factory(require('leaflet'));
-//     }
-//
-//     // attach your plugin to the global 'L' variable
-//     if (typeof window !== 'undefined' && window.L) {
-//         window.L.MarkerPlayer = factory(L);
-//     }
-// }(function (L) {
-//
-//
-//     return MarkerPlayer;
-// }, window));
+import { Marker, latLng, Util } from 'leaflet/dist/leaflet-src.esm.js';
 
-const MarkerPlayer = L.MarkerPlayer = L.Marker.extend({
+const MarkerPlayer = Marker.extend({
 	//state constants
 	statics: {
 		notStartedState: 0,
@@ -34,7 +15,7 @@ const MarkerPlayer = L.MarkerPlayer = L.Marker.extend({
 	},
 
 	initialize(points, duration, options) {
-		L.Marker.prototype.initialize.call(this, points[0].latlng, options);
+		Marker.prototype.initialize.call(this, points[0].latlng, options);
 		this._points = points;
 
 		if (duration instanceof Array) {
@@ -50,7 +31,7 @@ const MarkerPlayer = L.MarkerPlayer = L.Marker.extend({
 		this._currentDuration = 0;
 		this._currentIndex = 0;
 
-		this._state = L.MarkerPlayer.notStartedState;
+		this._state = MarkerPlayer.notStartedState;
 		this._startTime = 0;
 		this._startTimeStamp = 0;  // timestamp given by requestAnimFrame
 		this._pauseStartTime = 0;
@@ -62,19 +43,19 @@ const MarkerPlayer = L.MarkerPlayer = L.Marker.extend({
 	},
 
 	isRunning() {
-		return this._state === L.MarkerPlayer.runState;
+		return this._state === MarkerPlayer.runState;
 	},
 
 	isEnded() {
-		return this._state === L.MarkerPlayer.endedState;
+		return this._state === MarkerPlayer.endedState;
 	},
 
 	isStarted() {
-		return this._state !== L.MarkerPlayer.notStartedState;
+		return this._state !== MarkerPlayer.notStartedState;
 	},
 
 	isPaused() {
-		return this._state === L.MarkerPlayer.pausedState;
+		return this._state === MarkerPlayer.pausedState;
 	},
 
 	start() {
@@ -96,7 +77,7 @@ const MarkerPlayer = L.MarkerPlayer = L.Marker.extend({
 			return;
 		}
 		this._pauseStartTime = Date.now();
-		this._state = L.MarkerPlayer.pausedState;
+		this._state = MarkerPlayer.pausedState;
 		this._stopAnimation();
 	},
 
@@ -125,13 +106,13 @@ const MarkerPlayer = L.MarkerPlayer = L.Marker.extend({
 			//this._updatePosition();
 			this.setLatLng(this._points[0].latlng);
 		}
-		this._state = L.MarkerPlayer.endedState;
+		this._state = MarkerPlayer.endedState;
 		this._progChanged = false; //important so it wont make double end
 		this.fire('end', {progress: this.getProgress()});
 	},
 
 	addPoint(point, duration) {
-		//this._points.push(L.latLng(latlng));
+		//this._points.push(latLng(latlng));
 		this._points.push(point);
 		this._durations.push(duration);
 	},
@@ -140,7 +121,7 @@ const MarkerPlayer = L.MarkerPlayer = L.Marker.extend({
 		this._stopAnimation();
 		this._points = [{...this._points[this._currentIndex], latlng: this.getLatLng()}, point];
 		this._durations = [duration];
-		this._state = L.MarkerPlayer.notStartedState;
+		this._state = MarkerPlayer.notStartedState;
 		this.start();
 		this.options.loop = false;
 	},
@@ -153,7 +134,7 @@ const MarkerPlayer = L.MarkerPlayer = L.Marker.extend({
 	},
 
 	onAdd(map) {
-		L.Marker.prototype.onAdd.call(this, map);
+		Marker.prototype.onAdd.call(this, map);
 
 		if (this.options.autostart && (! this.isStarted())) {
 			this.start();
@@ -166,7 +147,7 @@ const MarkerPlayer = L.MarkerPlayer = L.Marker.extend({
 	},
 
 	onRemove(map) {
-		L.Marker.prototype.onRemove.call(this, map);
+		Marker.prototype.onRemove.call(this, map);
 		this._stopAnimation();
 	},
 
@@ -178,7 +159,7 @@ const MarkerPlayer = L.MarkerPlayer = L.Marker.extend({
 		if(this._durations[indx]) { //in case the p1 = p2 : this._durations[indx] = 0
 			let p1 = this._points[indx].latlng;
 			let p2 = this._points[indx + 1].latlng;
-			let ratio = this.getLatLng().distanceTo(p1) / L.latLng(p1).distanceTo(p2);
+			let ratio = this.getLatLng().distanceTo(p1) / latLng(p1).distanceTo(p2);
 			elapsed = acc + ratio * this._durations[indx];
 		}
 		if(timeFormat)
@@ -195,7 +176,7 @@ const MarkerPlayer = L.MarkerPlayer = L.Marker.extend({
 			this.pause(); //must be updated to make it still Running on progchange event; should use _progChanged.
 			isRunning = true;
 		} else if(this.isEnded()) { //make setProg possible after end
-			this._state = L.MarkerPlayer.notStartedState;
+			this._state = MarkerPlayer.notStartedState;
 		}
 		let p = percentage;
 		p = (p > 100)? 100 : p;
@@ -246,7 +227,7 @@ const MarkerPlayer = L.MarkerPlayer = L.Marker.extend({
 
 		// compute array of distances between points
 		for (let i = 0; i < lastIndex; i++) {
-			distance = L.latLng(points[i + 1].latlng).distanceTo(points[i].latlng);
+			distance = latLng(points[i + 1].latlng).distanceTo(points[i].latlng);
 			distances.push(distance);
 			totalDistance += distance;
 		}
@@ -273,16 +254,16 @@ const MarkerPlayer = L.MarkerPlayer = L.Marker.extend({
 		r = (r > 0) ? r : 0;
 		r = (r > 1) ? 1 : r;
 
-		return L.latLng(
+		return latLng(
 			p1.lat + r * (p2.lat - p1.lat),
 			p1.lng + r * (p2.lng - p1.lng)
 		);
 	},
 
 	_startAnimation() {
-		this._state = L.MarkerPlayer.runState;
+		this._state = MarkerPlayer.runState;
 		this._progChanged = false; //imoortant so it run by default
-		this._animId = L.Util.requestAnimFrame(function(timestamp) {
+		this._animId = Util.requestAnimFrame(function(timestamp) {
 			this._startTime = Date.now();
 			this._startTimeStamp = timestamp;
 			this._animate(timestamp);
@@ -293,7 +274,7 @@ const MarkerPlayer = L.MarkerPlayer = L.Marker.extend({
 	_resumeAnimation() {
 		if (!this._animRequested) {
 			this._animRequested = true;
-			this._animId = L.Util.requestAnimFrame(function(timestamp) {
+			this._animId = Util.requestAnimFrame(function(timestamp) {
 				this._animate(timestamp);
 			}, this, true);
 		}
@@ -301,7 +282,7 @@ const MarkerPlayer = L.MarkerPlayer = L.Marker.extend({
 
 	_stopAnimation() {
 		if(this._animRequested) {
-			L.Util.cancelAnimFrame(this._animId);
+			Util.cancelAnimFrame(this._animId);
 			this._animRequested = false;
 		}
 	},
@@ -392,8 +373,8 @@ const MarkerPlayer = L.MarkerPlayer = L.Marker.extend({
 		if(elapsedTime != null) {
 			 // compute the position
 			let p = this._interpolatePosition(
-				L.latLng(this._currentLine[0].latlng),
-				L.latLng(this._currentLine[1].latlng),
+				latLng(this._currentLine[0].latlng),
+				latLng(this._currentLine[1].latlng),
 				this._currentDuration,
 				elapsedTime
 			);
@@ -401,11 +382,13 @@ const MarkerPlayer = L.MarkerPlayer = L.Marker.extend({
 		}
 		if(!noRequestAnim) {
 			this._animRequested = true;
-			this._animId = L.Util.requestAnimFrame(this._animate, this, false);
+			this._animId = Util.requestAnimFrame(this._animate, this, false);
 		}
 	},
 });
 
-L.markerPlayer = function (points, duration, options) {
+const markerPlayer = function (points, duration, options) {
 	return new MarkerPlayer(points, duration, options);
 };
+
+export {MarkerPlayer, markerPlayer};
