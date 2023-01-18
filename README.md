@@ -1,5 +1,5 @@
 # Leaflet.MarkerPlayer
-A Leaflet plug-in for animating marker with ability to set progress!
+A Leaflet plug-in for animating marker with ability to get/set progress!
 
 ![Demo GIF](demo.gif)
 ## Live Deme
@@ -127,7 +127,7 @@ If your marker moves very slowly (1-2 min or more for one transition) and you zo
 ## ✌ Support
  - BTC: 1BjLHVV1A4VxK1eACAUsMFDrWza71iwV9p
  - ETH: 0xEa21E67BF5Ec26bb7Cf2ddB64538e908b086F1D5
- 
+
 
 ## License
 MIT License
