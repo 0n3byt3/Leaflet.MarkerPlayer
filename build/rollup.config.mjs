@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import typescript from '@rollup/plugin-typescript';
 
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url)));
 const version = pkg.version;
@@ -13,7 +14,7 @@ function createBanner(version) {
 }
 
 export default {
-	input: 'src/index.js',
+	input: 'src/index.ts',
 	output: [
 		{
 			name: 'L',
@@ -39,6 +40,6 @@ export default {
 			freeze: false
 		}
 	],
-	plugins: [],
+	plugins: [typescript()],
 	external: [...Object.keys(pkg.peerDependencies), 'leaflet/dist/leaflet-src.esm.js']
 };

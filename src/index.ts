@@ -1,4 +1,23 @@
 import { Marker, latLng, Util } from 'leaflet/dist/leaflet-src.esm.js';
+import type { LatLngExpression, MarkerOptions, Map, LatLng } from 'leaflet';
+
+export interface Point {
+  latlng: LatLngExpression;
+}
+export type Duration = number[] | number;
+
+interface MarkerPlayerClass {
+  notStartedState: number;
+  endedState: number;
+  pausedState: number;
+  runState: number;
+  _startTime: number;
+  _startTimeStamp: number;
+
+  new(points: Point[], duration: Duration, options?: MarkerOptions): any;
+
+  _animate(timestamp: number): void;
+}
 
 const MarkerPlayer = Marker.extend({
 	//state constants
@@ -14,8 +33,8 @@ const MarkerPlayer = Marker.extend({
 		loop: false,
 	},
 
-	initialize(points, duration, options) {
-		Marker.prototype.initialize.call(this, points[0].latlng, options);
+	initialize(points: Point[], duration: Duration, options?: MarkerOptions) {
+		(Marker.prototype as any).initialize.call(this, points[0].latlng, options);
 		this._points = points;
 
 		if (duration instanceof Array) {
@@ -93,14 +112,14 @@ const MarkerPlayer = Marker.extend({
 		this._startAnimation();
 	},
 
-	stop(elapsedTime) { //todo: some work on usercall(first if)
+	stop(elapsedTime?: number) { //todo: some work on usercall(first if)
 		if (this.isEnded()) {
-			if(typeof(elapsedTime) === 'undefined')
+			if(typeof(elapsedTime) === 'undefined') //user call => put marker at fitst point
 				this.setLatLng(this._points[0].latlng);
 			return;
 		}
 		this._stopAnimation();
-		if (typeof(elapsedTime) === 'undefined') {
+		if (typeof(elapsedTime) === 'undefined') { //user call => put marker at fitst point
 			// user call
 			elapsedTime = 0;
 			//this._updatePosition();
@@ -111,13 +130,13 @@ const MarkerPlayer = Marker.extend({
 		this.fire('end', {progress: this.getProgress()});
 	},
 
-	addPoint(point, duration) {
+	addPoint(point: LatLngExpression, duration: number) {
 		//this._points.push(latLng(latlng));
 		this._points.push(point);
 		this._durations.push(duration);
 	},
 
-	moveTo(point, duration) {
+	moveTo(point: LatLngExpression, duration: number) {
 		this._stopAnimation();
 		this._points = [{...this._points[this._currentIndex], latlng: this.getLatLng()}, point];
 		this._durations = [duration];
@@ -126,17 +145,17 @@ const MarkerPlayer = Marker.extend({
 		this.options.loop = false;
 	},
 
-	addStation(pointIndex, duration) {
+	addStation(pointIndex: number, duration: number) {
 		if (pointIndex > this._points.length - 2 || pointIndex < 1) {
 			return;
 		}
 		this._stations[pointIndex] = duration;
 	},
 
-	onAdd(map) {
+	onAdd(map: Map) {
 		Marker.prototype.onAdd.call(this, map);
 
-		if (this.options.autostart && (! this.isStarted())) {
+		if (this.options.autostart && (!this.isStarted())) {
 			this.start();
 			return;
 		}
@@ -146,7 +165,7 @@ const MarkerPlayer = Marker.extend({
 		}
 	},
 
-	onRemove(map) {
+	onRemove(map: Map) {
 		Marker.prototype.onRemove.call(this, map);
 		this._stopAnimation();
 	},
@@ -169,7 +188,7 @@ const MarkerPlayer = Marker.extend({
 	},
 
 	//set anim progress by percentage
-	setProgress(percentage) {
+	setProgress(percentage: number) {
 		this._progChanged = true;
 		let isRunning = false;
 		if (this.isRunning()) {
@@ -184,7 +203,7 @@ const MarkerPlayer = Marker.extend({
 		const t = this._totDuration * p / 100;
 		const dur = this._durations;
 		const accDur = this._accDurations;
-		let indx;
+		let indx = 0;
 		for(let i = 0, len = accDur.length; i < len; i++) {
 			if(accDur[i] >= t) {
 				indx = i;
@@ -199,7 +218,7 @@ const MarkerPlayer = Marker.extend({
 	},
 
 	//set new dur for anim
-	setDuration(newDuration) {
+	setDuration(newDuration: Duration) {
 		let isRunning = false;
 		if (this.isRunning()) {
 			this.pause();
@@ -219,7 +238,7 @@ const MarkerPlayer = Marker.extend({
 			this.resume();
 	},
 
-	_createDurations(points, duration) {
+	_createDurations(points: Point[], duration: number) {
 		let lastIndex = points.length - 1;
 		let distances = [];
 		let totalDistance = 0;
@@ -235,7 +254,7 @@ const MarkerPlayer = Marker.extend({
 		let ratioDuration = duration / totalDistance;
 
 		let durations = [];
-		let accDurations = []; //accumulative durations
+		let accDurations: number[] = []; //accumulative durations
 		for (let i = 0; i < distances.length; i++) {
 			durations.push(distances[i] * ratioDuration);
 			if( i === 0)
@@ -249,7 +268,7 @@ const MarkerPlayer = Marker.extend({
 		return [durations, accDurations];
 	},
 
-	_interpolatePosition(p1, p2, duration, t) {
+	_interpolatePosition(p1: LatLng, p2: LatLng, duration: number, t: number) {
 		let r = t/duration;
 		r = (r > 0) ? r : 0;
 		r = (r > 1) ? 1 : r;
@@ -263,7 +282,7 @@ const MarkerPlayer = Marker.extend({
 	_startAnimation() {
 		this._state = MarkerPlayer.runState;
 		this._progChanged = false; //imoortant so it run by default
-		this._animId = Util.requestAnimFrame(function(timestamp) {
+		this._animId = Util.requestAnimFrame(function(this: MarkerPlayerClass, timestamp) {
 			this._startTime = Date.now();
 			this._startTimeStamp = timestamp;
 			this._animate(timestamp);
@@ -274,7 +293,7 @@ const MarkerPlayer = Marker.extend({
 	_resumeAnimation() {
 		if (!this._animRequested) {
 			this._animRequested = true;
-			this._animId = Util.requestAnimFrame(function(timestamp) {
+			this._animId = Util.requestAnimFrame(function(this: MarkerPlayerClass, timestamp) {
 				this._animate(timestamp);
 			}, this, true);
 		}
@@ -292,7 +311,7 @@ const MarkerPlayer = Marker.extend({
 		this._animate(this._startTimeStamp + elapsedTime, true);
 	},
 
-	_loadLine(index) {
+	_loadLine(index: number) {
 		this._currentIndex = index;
 		this._currentDuration = this._durations[index];
 		this._currentLine = this._points.slice(index, index + 2);
@@ -305,7 +324,7 @@ const MarkerPlayer = Marker.extend({
 	 * @return {Number} elapsed time on the current line or null if
 	 * we reached the end or marker is at a station
 	 */
-	_updateLine(timestamp) {
+	_updateLine(timestamp: number) {
 		// time elapsed since the last latlng
 		let elapsedTime = timestamp - this._startTimeStamp;
 
@@ -358,7 +377,7 @@ const MarkerPlayer = Marker.extend({
 		return elapsedTime;
 	},
 
-	_animate(timestamp, noRequestAnim) {
+	_animate(timestamp: number, noRequestAnim: boolean) {
 		this._animRequested = false;
 		let indx = this._currentIndex;
 		// find the next line and compute the new elapsedTime
@@ -385,9 +404,9 @@ const MarkerPlayer = Marker.extend({
 			this._animId = Util.requestAnimFrame(this._animate, this, false);
 		}
 	},
-});
+}) as unknown as MarkerPlayerClass;
 
-const markerPlayer = function (points, duration, options) {
+const markerPlayer = function (points: Point[], duration: Duration, options?: MarkerOptions) {
 	return new MarkerPlayer(points, duration, options);
 };
 
